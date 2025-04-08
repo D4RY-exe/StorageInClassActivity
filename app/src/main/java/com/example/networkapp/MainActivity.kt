@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
         showButton.setOnClickListener {
             downloadComic(numberEditText.text.toString())
         }
+        loadSavedComic()
 
     }
 
@@ -52,7 +53,7 @@ class MainActivity : AppCompatActivity() {
         requestQueue.add (
             JsonObjectRequest(url
                 , {showComic(it)}
-                , {}
+                , {Toast.makeText(this, "Comic not found", Toast.LENGTH_SHORT).show()}
             )
         )
     }
@@ -62,12 +63,24 @@ class MainActivity : AppCompatActivity() {
         titleTextView.text = comicObject.getString("title")
         descriptionTextView.text = comicObject.getString("alt")
         Picasso.get().load(comicObject.getString("img")).into(comicImageView)
+        saveComic(comicObject)
     }
 
     // Implement this function
     private fun saveComic(comicObject: JSONObject) {
-
+        val pref = getSharedPreferences("comics", MODE_PRIVATE)
+        pref.edit().apply{
+            putString("savedComic", comicObject.toString())
+            apply()
+        }
     }
-
+    private fun loadSavedComic() {
+        val pref = getSharedPreferences("comics", MODE_PRIVATE)
+        val savedComic = pref.getString("savedComic", null)
+        savedComic?.let {
+            val comicObject = JSONObject(it)
+            showComic(comicObject)
+        }
+    }
 
 }
